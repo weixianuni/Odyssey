@@ -881,6 +881,8 @@ void  preprocessing(){
 
 void initalise();
 int main(){
+  cout << "Using jaccard score for merging" << endl;
+
   ios_base::sync_with_stdio(false); cin.tie(0); cout.tie(0);
   cout << fixed << setprecision(4);
   ConfigParser("clustering_config.cfg");  
@@ -910,17 +912,16 @@ int main(){
     cout << "No input to cluster" << endl;
     exit(EXIT_FAILURE);
   }
-//   q_gram_seq_generator(gram_size , ""); 
   total_num_of_strands = pool.size(); 
 
   assert(total_num_of_strands == idx);
-  q_gram_dict.resize(total_num_of_strands);
-  cout << q_gram_dict.size() << endl;
-  create_q_gram_dict();
-  time_t q_gram_init_time; 
-  time(&q_gram_init_time);
+  frequency_vector_dict.resize(total_num_of_strands);
+  cout << frequency_vector_dict.size() << endl;
+  create_JSI_dict();
+  time_t J_gram_init_time; 
+  time(J_gram_init_time);
   if(print_time_stamps)
-    cout << "--- " << q_gram_init_time-start_time  << " seconds for taking input strands and pre-computing q_grams---" << endl;
+    cout << "--- " << J_gram_init_time-start_time  << " seconds for taking input strands and pre-computing q_grams---" << endl;
 
   if(auto_tuning){
     time_t pre_start , pre_end;
