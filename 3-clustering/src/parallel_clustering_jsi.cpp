@@ -182,7 +182,8 @@ void *JSI_thread(void *args){
   }
   pthread_exit(NULL);
 }
-void create_q_gram_dict(){
+// assigns reads to threads
+void create_JSI_dict(){
   if(pool.size() == 0) return;
   int num_thread = min(max_num_thread , (int)pool.size());
   if(num_thread == 0){
@@ -195,9 +196,9 @@ void create_q_gram_dict(){
   pthread_t my_thread[num_thread];
   int curr = 0;
   for(int i = 0;i < num_thread ; ++i){
-    info_thread[i] = make_pair(curr , each+(i<extra)); 
+    info_thread[i] = make_pair(curr , each+(i<extra));
     curr += each+(i<extra);
-    int res=pthread_create(&my_thread[i],NULL, &q_gram_thread,&info_thread[i]);
+    int res=pthread_create(&my_thread[i],NULL, &JSI_thread,&info_thread[i]);
     if(res != 0){
       cout << "Error: p_thread create failed" << endl;
       exit(EXIT_FAILURE);
