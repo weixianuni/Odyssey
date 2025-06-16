@@ -207,35 +207,11 @@ void create_JSI_dict(){
   for(int i = 0;i < num_thread ; ++i)
     pthread_join(my_thread[i] , NULL);
 }
-
-int edit_distance(const string &s1, const string &s2){
-  int len1 = s1.length() , len2 = s2.length();
-  int dp[2][len1+1]; 
-  for(int i = 0;i <= len1 ; ++i){
-    dp[0][i] = i;
-    dp[1][i] = INF;
-  }
-  for(int i = 1;i <= len2 ; ++i){
-    int curr = (i&1), prev = (curr^1);
-    dp[curr][0] = i;
-    for(int j = 1; j <= len1 ; ++j){
-      if(s2[i-1] == s1[j-1]) dp[curr][j] = dp[prev][j-1]; 
-      else{
-        dp[curr][j] = min(1+dp[prev][j] , 1+dp[prev][j-1]);
-        dp[curr][j] = min(dp[curr][j] , 1+dp[curr][j-1]);
-      }
-    }
-  }
-  return dp[len2&1][len1];
-}
 string random_string(int length){
   string ans(length , ' ');
   for(int i = 0;i < length ; ++i)
     ans[i] = iterable[random_no()%iterable.size()];
   return ans;
-}
-int hamming_distance(int i , int j){
-  return (q_gram_dict[i]^q_gram_dict[j]).count();
 }
 int compute_distance(int i , int j , string type){
   if(DEBUG) assert(i< total_num_of_strands && i >= 0);
