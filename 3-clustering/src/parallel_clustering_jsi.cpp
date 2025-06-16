@@ -112,23 +112,40 @@ inline int random_no(){
   return pcg32();
 }
 
-void q_gram_seq_generator(int length, string curr){
-  if(length == 0){
-    all_q_gram_sequences.push_back(curr);
-    return;
-  }
-  else{
-    int idx;
-    if(curr.size() == 0) idx = 0;
-    else idx = find(iterable.begin(),iterable.end(),curr.back())-iterable.begin(); 
-    if(DEBUG) assert(idx >= 0 && idx < iterable.size());
-    for(int i = idx;i < iterable_size ; ++i){
-      curr.push_back(iterable[i]);
-      q_gram_seq_generator(length-1 , curr);
-      curr.pop_back();
+// void q_gram_seq_generator(int length, string curr){
+//   if(length == 0){
+//     all_q_gram_sequences.push_back(curr);
+//     return;
+//   }
+//   else{
+//     int idx;
+//     if(curr.size() == 0) idx = 0;
+//     else idx = find(iterable.begin(),iterable.end(),curr.back())-iterable.begin(); 
+//     if(DEBUG) assert(idx >= 0 && idx < iterable.size());
+//     for(int i = idx;i < iterable_size ; ++i){
+//       curr.push_back(iterable[i]);
+//       q_gram_seq_generator(length-1 , curr);
+//       curr.pop_back();
+//     }
+//   }
+// }
+
+// removes the need to store all q-grams
+int kmer_index(const string& kmer) {
+    int index = 0;
+    for (char c : kmer) {
+        index *= 4;
+        if (c == 'C')
+            index += 1;
+        else if (c == 'G')
+            index += 2;
+        else if (c == 'T')
+            index += 3;
+        // If c == 'A', index += 0, so nothing needed
     }
-  }
+    return index;
 }
+
 inline void q_gram_string(const string & s , int offset , bitset<Q_GRAM_STRAND_SIZE> &temp_gram_string){
   if(DEBUG) assert(s.size() <= block_size);
   if(s.size() < gram_size) return;
@@ -928,7 +945,7 @@ int main(){
     cout << "No input to cluster" << endl;
     exit(EXIT_FAILURE);
   }
-  q_gram_seq_generator(gram_size , ""); 
+//   q_gram_seq_generator(gram_size , ""); 
   total_num_of_strands = pool.size(); 
 
   assert(total_num_of_strands == idx);
