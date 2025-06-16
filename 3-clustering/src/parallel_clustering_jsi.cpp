@@ -173,11 +173,12 @@ void frequency_vector_sequence(int idx) {
   assert(idx < pool.size());
   frequency_vector_dict[idx] = occ;
 }
-void *q_gram_thread(void *args){
+// threads that compute the frequency vector for a set of reads assigned by create_JSI_dict
+void *JSI_thread(void *args){
   pair<int, int> *info = static_cast<pair<int,int> *>(args);
   int start_index = (*info).first , length = (*info).second;
   for(int i = start_index , no = 0; no < length ; ++no , ++i){
-    q_gram_sequence(i);
+    frequency_vector_sequence(i);
   }
   pthread_exit(NULL);
 }
