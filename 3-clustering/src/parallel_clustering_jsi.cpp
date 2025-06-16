@@ -213,21 +213,6 @@ string random_string(int length){
     ans[i] = iterable[random_no()%iterable.size()];
   return ans;
 }
-int compute_distance(int i , int j , string type){
-  if(DEBUG) assert(i< total_num_of_strands && i >= 0);
-  if(DEBUG) assert(j< total_num_of_strands && j >= 0);
-  if(type == "edit"){
-    //if(DEBUG) assert(dis <= strand_length);
-    return eval_edit_distance(pool[i] , pool[j]);
-  }
-  else if(type == "hamming"){
-    //if(DEBUG) assert(dis <= Q_GRAM_STRAND_SIZE);
-    return hamming_distance(i,j);
-  }
-  else{
-    assert(0);
-  }
-}
 void create_anchors(string type , vector<vector<string> > &anchors){
   if(DEBUG) assert(type == "global" || type == "local");
   int rows = ((type == "global")? global_num_anchor_lists : local_num_anchor_lists);  
