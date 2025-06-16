@@ -158,25 +158,20 @@ void frequency_vector_string(const string & s , int block_id , vector<int> &occ)
       occ[block_id * TOTAL_KMERS + kmer_index(gram)] += 1;
   }
 }
-inline void q_gram_sequence(int idx){
+//breaks read into blocks of block_size and calls frequency_vector_string
+void frequency_vector_sequence(int idx) {
+
   string s = pool[idx];
-  bitset<Q_GRAM_STRAND_SIZE> temp_gram_string;
-  string substr_block(block_size , ' ');
-  int i, j = 0, cnt = 0, len;
-  for(i = 0, len= s.length();  i < len ; ++i ){
-    substr_block[j++] = s[i];
-    if(j == block_size){
-      q_gram_string(substr_block , cnt , temp_gram_string); 
-      j = 0;
-      ++cnt;
-    }
-  }
-  if(j != 0){
-    substr_block.resize(j);
-    q_gram_string(substr_block, cnt , temp_gram_string);
+  int considered_length = s.size() - gram_size + 1;
+  int num_of_blocks = (considered_length + block_size - 1) / block_size;
+
+  vector<int> occ(TOTAL_KMERS * num_of_blocks, 0);
+  int block_id = 0;
+  for (int i = 0; i < num_of_blocks; ++i) {
+    frequency_vector_string(s, i, occ);
   }
   assert(idx < pool.size());
-  q_gram_dict[idx] = temp_gram_string;
+  frequency_vector_dict[idx] = occ;
 }
 void *q_gram_thread(void *args){
   pair<int, int> *info = static_cast<pair<int,int> *>(args);
