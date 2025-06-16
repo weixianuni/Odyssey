@@ -207,6 +207,47 @@ void create_JSI_dict(){
   for(int i = 0;i < num_thread ; ++i)
     pthread_join(my_thread[i] , NULL);
 }
+double weighted_jaccard_score(int i1, int i2) {
+    const string& s1 = pool[i1];
+    const vector<int>& s1_counts_orig = frequency_vector_dict[i1];
+    const string& s2 = pool[i2];
+    const vector<int>& s2_counts_orig = frequency_vector_dict[i2];
+    int total_length = s1.length() + s2.length();
+    int max_num_counts = max(s1_counts_orig.size(), s2_counts_orig.size());
+    // Extend shorter vector with zeros
+    vector<int> s1_counts = s1_counts_orig;
+    vector<int> s2_counts = s2_counts_orig;
+    if (s1_counts.size() < max_num_counts)
+        s1_counts.resize(max_num_counts, 0);
+    else if (s2_counts.size() < max_num_counts)
+        s2_counts.resize(max_num_counts, 0);
+    vector<int> mins(max_num_counts), maxs(max_num_counts);
+    for (int i = 0; i < max_num_counts; ++i) {
+        mins[i] = min(s1_counts[i], s2_counts[i]);
+        maxs[i] = max(s1_counts[i], s2_counts[i]);
+    }
+    int max_num_partitions = max_num_counts / TOTAL_KMERS;
+    double ans = 0.0;
+
+    for (int i = 0; i < max_num_partitions; ++i) {
+        int start = i * TOTAL_KMERS;
+        int end = start + TOTAL_KMERS;
+
+        int num = 0, denom = 0;
+        for (int j = start; j < end; ++j) {
+            num += mins[j];
+            denom += maxs[j];
+        }
+
+        int s1_block_len = (i * block_size < (int)s1.length()) ? min(block_size, (int)s1.length() - i * block_size) : 0;
+        int s2_block_len = (i * block_size < (int)s2.length()) ? min(block_size, (int)s2.length() - i * block_size) : 0;
+        double weight = (double)(s1_block_len + s2_block_len) / total_length;
+    
+        double jaccard = (denom == 0) ? 0.0 : (double)num / denom;
+        ans += jaccard * weight;
+    }
+    return ans;
+}
 string random_string(int length){
   string ans(length , ' ');
   for(int i = 0;i < length ; ++i)
@@ -332,8 +373,8 @@ void local_clustering(vector<vector<int> > &clusters){
         }
         int rep1=hash_values[i].rep;
         int rep2=hash_values[j].rep;
-        int hamming_dist=compute_distance(rep1,rep2,"hamming");
-        if(hamming_dist<=theta_low){
+        int jaccard_score = weighted_jaccard_score(rep1, rep2);
+        if(jaccard_score>=jaccard_threshold){
           if(sorting_or_pairwise){
             hash_values[i].cluster.reserve(hash_values[i].cluster.size() + hash_values[j].cluster.size());
             hash_values[i].cluster.insert(hash_values[i].cluster.end() , hash_values[j].cluster.begin() , hash_values[j].cluster.end());
@@ -347,31 +388,7 @@ void local_clustering(vector<vector<int> > &clusters){
           }
           hash_values.erase(hash_values.begin()+j);
           n--;
-        }
-        else if(hamming_dist<=theta_high)
-        {
-          int edit_dist=compute_distance(rep1,rep2,"edit");
-          if(edit_dist<=r){
-            if(sorting_or_pairwise){
-              hash_values[i].cluster.reserve(hash_values[i].cluster.size() + hash_values[j].cluster.size());
-              hash_values[i].cluster.insert(hash_values[i].cluster.end() , hash_values[j].cluster.begin() , hash_values[j].cluster.end());
-              hash_values[i].rep = hash_values[i].cluster[random_no()%hash_values[i].cluster.size()];
-            }
-            else{
-              clusters[i].reserve(clusters[i].size() + clusters[j].size());
-              clusters[i].insert(clusters[i].end(),clusters[j].begin(),clusters[j].end());
-              hash_values[i].rep = clusters[i][random_no()%clusters[i].size()];
-              clusters.erase(clusters.begin()+j);
-            }
-            hash_values.erase(hash_values.begin()+j);
-            n--;
-          }
-          else{
-            if(sorting_or_pairwise) break;
-            else ++j;
-          }
-        }
-        else{
+        }else{
           if(sorting_or_pairwise) break;
           else ++j;
         }
