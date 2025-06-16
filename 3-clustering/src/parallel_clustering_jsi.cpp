@@ -146,26 +146,16 @@ int kmer_index(const string& kmer) {
     return index;
 }
 
-inline void q_gram_string(const string & s , int offset , bitset<Q_GRAM_STRAND_SIZE> &temp_gram_string){
-  if(DEBUG) assert(s.size() <= block_size);
+// creates frequency vector for each block 
+void frequency_vector_string(const string & s , int block_id , vector<int> &occ) {
   if(s.size() < gram_size) return;
-  unordered_set<string> block_grams;
-  string gram;
-  for(int i = 0; i < gram_size-1 ; ++i){
-    gram.push_back(s[i]);
-  }
-  for(int i = gram_size-1 , len = s.size() ; i < len ; ++i){
-    gram.push_back(s[i]);
-    block_grams.insert(gram);
-    gram.erase(gram.begin()); 
-  }
-  if(DEBUG) assert(gram.size() == gram_size-1);
-  for(int i = 0, len = all_q_gram_sequences.size() ; i < len ; ++i){
-    if(offset*len+i >= Q_GRAM_STRAND_SIZE){
-      cout << "Change the variable Q_GRAM_STRAND_SIZE to: " << 2*strand_length*all_q_gram_sequences.size()/block_size << endl;
-      exit(EXIT_FAILURE);
-    }
-    temp_gram_string[offset*len+i] = (block_grams.find(all_q_gram_sequences[i]) != block_grams.end()); 
+
+  int start_id = block_id * block_size;
+  int block_end = min((int)s.size(), start_id + block_size);
+  for (int i = start_id; i < block_end; ++i) {
+      if (i + gram_size > (int)s.size()) break;
+      string gram = s.substr(i, gram_size);
+      occ[block_id * TOTAL_KMERS + kmer_index(gram)] += 1;
   }
 }
 inline void q_gram_sequence(int idx){
